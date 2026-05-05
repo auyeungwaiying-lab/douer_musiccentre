@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>音樂教室管理系統</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f7f6f3;color:#1a1a1a;font-size:15px}
+
+.login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem}
+.login-card{background:#fff;border:1px solid #e5e3de;border-radius:14px;padding:2rem;width:100%;max-width:360px;box-shadow:0 2px 16px rgba(0,0,0,.07)}
+.login-logo{font-size:30px;margin-bottom:6px}
+.login-title{font-size:20px;font-weight:600;margin-bottom:4px}
+.login-sub{font-size:13px;color:#999;margin-bottom:1.5rem}
+.hint-box{background:#f5f3ff;border:1px solid #ddd8f8;border-radius:8px;padding:10px 14px;font-size:12px;color:#5a4fcf;margin-top:1.25rem;line-height:1.7}
+
+.form-group{margin-bottom:1rem}
+.form-label{font-size:13px;color:#555;display:block;margin-bottom:5px;font-weight:500}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+select,input[type=text],input[type=password],input[type=number],input[type=date],input[type=time],input[type=month],textarea{
+  width:100%;border:1px solid #e0deda;border-radius:8px;padding:9px 11px;
+  font-size:14px;background:#fff;color:#1a1a1a;outline:none;transition:border .15s}
+select:focus,input:focus,textarea:focus{border-color:#aaa}
+textarea{height:68px;resize:vertical}
+button{cursor:pointer;border:1px solid #e0deda;border-radius:8px;background:#fff;
+  color:#1a1a1a;padding:8px 16px;font-size:14px;transition:background .15s}
+button:hover{background:#f5f3f0}
+button:active{transform:scale(.98)}
+.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a;width:100%;padding:11px;font-size:15px;font-weight:500}
+.btn-primary:hover{background:#333}
+.btn-sm{padding:5px 11px;font-size:12px}
+.btn-danger{border-color:#f0bfbb;color:#c0392b;background:#fdf3f2}
+.btn-danger:hover{background:#fce3e1}
+.btn-success{border-color:#b8ddc8;color:#1e7a45;background:#f0f9f4}
+.btn-success:hover{background:#dff0ea}
+.error-msg{color:#c0392b;font-size:13px;margin-top:8px}
+
+.app{display:none;min-height:100vh}
+.header{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;
+  border-bottom:1px solid #e5e3de;background:#fff;position:sticky;top:0;z-index:10}
+.header-left{display:flex;align-items:center;gap:10px}
+.header-title{font-size:16px;font-weight:600}
+.role-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500}
+.role-admin{background:#ede9fe;color:#5b21b6}
+.role-teacher{background:#f0fdf4;color:#15803d}
+.user-name{font-size:13px;color:#999}
+
+.nav{display:flex;gap:4px;padding:.65rem 1.25rem;border-bottom:1px solid #e5e3de;
+  background:#faf9f7;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav-btn{white-space:nowrap;font-size:13px;padding:6px 14px;border-radius:8px;
+  border:none;background:transparent;color:#777}
+.nav-btn.active{background:#fff;color:#1a1a1a;border:1px solid #e0deda;font-weight:500}
+
+.content{padding:1.25rem;max-width:1000px;margin:0 auto}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.section-title{font-size:16px;font-weight:600}
+.sub-title{font-size:13px;font-weight:600;color:#555;margin-bottom:6px}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:1.5rem}
+.stat-card{background:#fff;border:1px solid #e5e3de;border-radius:10px;padding:1rem}
+.stat-label{font-size:12px;color:#999;margin-bottom:4px}
+.stat-value{font-size:24px;font-weight:600}
+.stat-sub{font-size:12px;color:#bbb;margin-top:2px}
+
+.month-nav{display:flex;align-items:center;gap:8px;margin-bottom:1rem}
+.month-nav button{width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;font-size:16px;border-radius:50%}
+.month-label{font-size:15px;font-weight:500;min-width:90px;text-align:center}
+
+.table-wrap{background:#fff;border:1px solid #e5e3de;border-radius:10px;overflow:hidden;margin-bottom:1.25rem}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 14px;font-weight:500;font-size:12px;color:#999;
+  border-bottom:1px solid #e5e3de;background:#faf9f7}
+td{padding:10px 14px;border-bottom:1px solid #f0efec;color:#1a1a1a;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#faf9f7}
+.summary-row td{background:#fafaf7;font-weight:500;color:#555;font-size:12px;border-top:1px solid #e5e3de}
+
+.badge{display:inline-block;font-size:11px;padding:2px 9px;border-radius:20px;font-weight:500}
+.badge-purple{background:#ede9fe;color:#5b21b6}
+.badge-green{background:#f0fdf4;color:#15803d}
+.badge-amber{background:#fefce8;color:#854d0e}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);display:flex;
+  align-items:center;justify-content:center;z-index:100;padding:1rem}
+.modal{background:#fff;border:1px solid #e5e3de;border-radius:12px;padding:1.5rem;
+  width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.1)}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:1.25rem}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem}
+
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:1rem}
+.alert-error{background:#fdf3f2;color:#c0392b;border:1px solid #fecaca}
+.alert-warn{background:#fefce8;color:#854d0e;border:1px solid #fde68a}
+.alert-info{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid #ddd;
+  border-top-color:#888;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{text-align:center;padding:2.5rem;color:#bbb;font-size:14px}
+.loading-state{text-align:center;padding:2rem;color:#bbb;font-size:13px}
+
+.setup-banner{background:#fefce8;border:1px solid #fde68a;border-radius:10px;
+  padding:1rem 1.25rem;margin-bottom:1rem;font-size:13px;color:#713f12;line-height:1.7}
+.setup-banner strong{display:block;margin-bottom:4px;font-size:14px}
+
+.student-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:1.25rem}
+.student-card{background:#fff;border:1px solid #e5e3de;border-radius:10px;padding:.9rem 1rem}
+.student-name{font-size:14px;font-weight:600;margin-bottom:6px}
+.student-stats{display:flex;gap:16px}
+.student-stat-val{font-size:18px;font-weight:600}
+.student-stat-lbl{font-size:11px;color:#999}
+
+/* income category tabs */
+.cat-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
+.cat-tab{font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid #e0deda;background:#fff;color:#555;cursor:pointer}
+.cat-tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+
+/* clock-in grid */
+.staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:1.25rem}
+.staff-card{background:#fff;border:1px solid #e5e3de;border-radius:10px;padding:.9rem 1rem}
+.staff-name{font-size:14px;font-weight:600;margin-bottom:4px}
+.staff-hours{font-size:22px;font-weight:600}
+.staff-sub{font-size:12px;color:#999}
+
+.divider{height:1px;background:#f0efec;margin:1.25rem 0}
+.date-chip{display:inline-block;font-size:11px;padding:3px 8px;border-radius:20px;background:#f0f0ee;color:#555;}
+</style>
+</head>
+<body>
+
+<!-- 登入 -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">🎵</div>
+    <div class="login-title">音樂教室管理系統</div>
+    <div class="login-sub">請選擇身分並登入</div>
+    <div class="form-group">
+      <label class="form-label">身分</label>
+      <select id="loginRole" onchange="onRoleChange()">
+        <option value="">— 請選擇 —</option>
+        <option value="admin">管理員</option>
+      </select>
+    </div>
+    <div id="teacherSelectWrap" style="display:none" class="form-group">
+      <label class="form-label">老師姓名</label>
+      <select id="loginTeacher"><option value="">— 請選擇 —</option></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">密碼</label>
+      <input type="password" id="loginPassword" placeholder="輸入密碼" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-primary" id="loginBtn" onclick="doLogin()">登入</button>
+    <div class="error-msg" id="loginError"></div>
+    <div class="hint-box">
+      預設密碼：管理員 <strong>admin123</strong>　老師 <strong>teacher123</strong>
+    </div>
+  </div>
+</div>
+
+<!-- 主畫面 -->
+<div class="app" id="mainApp">
+  <div class="header">
+    <div class="header-left">
+      <span style="font-size:18px">🎵</span>
+      <div class="header-title">音樂教室</div>
+      <span class="role-badge" id="roleBadge"></span>
+      <span class="user-name" id="userNameDisplay"></span>
+    </div>
+    <button class="btn-sm" onclick="doLogout()">登出</button>
+  </div>
+  <div class="nav" id="mainNav"></div>
+  <div class="content" id="mainContent">
+    <div class="loading-state"><span class="spinner"></span>載入中...</div>
+  </div>
+</div>
+<div id="modalContainer"></div>
+
+<script>
+// ============================================================
+// ⚙️  換成你的 Apps Script 部署網址
+// ============================================================
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxrS__MqXejbIDM39hJuFZIsR7McWoSqLxRXwLdFClXn39o_4i_Ijg4-OvlPOj6w6y5Ig/exec';
+
+// 負責團體課的老師（可在此修改）
+const GROUP_TEACHERS = ['廷廷', 'Yukie', '馬希', '俐俐', '乖乖'];
+
+// ============================================================
+// 密碼
+// ============================================================
+function getPW(r){ return localStorage.getItem('pw_'+r)||(r==='admin'?'admin123':'teacher123'); }
+function setPW(r,pw){ localStorage.setItem('pw_'+r,pw); }
+
+// ============================================================
+// Demo DB
+// ============================================================
+const _initDB = ()=>({
+  teachers:[], staff:[], income_categories:[],
+  private_lessons:[], group_lessons:[], clockin:[], income:[]
+});
+function _ddb(){ return JSON.parse(localStorage.getItem('music_v3_db')||JSON.stringify(_initDB())); }
+function _sdb(db){ localStorage.setItem('music_v3_db',JSON.stringify(db)); }
+
+async function api(action, sheet, extra={}) {
+  if(!SCRIPT_URL||SCRIPT_URL.length<20) return demoAPI(action,sheet,extra);
+  const res = await fetch(SCRIPT_URL,{
+    method:'POST', body:JSON.stringify({action,sheet,...extra}),
+    headers:{'Content-Type':'text/plain'}
+  });
+  const json = await res.json();
+  if(!json.ok) throw new Error(json.error||'API Error');
+  return json.data;
+}
+
+function demoAPI(action,sheet,extra){
+  const db=_ddb();
+  if(!db[sheet]) db[sheet]=[];
+  if(action==='getAll') return db[sheet];
+  if(action==='append'){ db[sheet].push(extra.data); _sdb(db); return null; }
+  if(action==='delete'){ db[sheet]=db[sheet].filter(r=>String(r.id)!==String(extra.id)); _sdb(db); return null; }
+  if(action==='update'){ const r=db[sheet].find(r=>String(r.id)===String(extra.id)); if(r) Object.assign(r,extra.updates); _sdb(db); return null; }
+}
+
+// ============================================================
+// State
+// ============================================================
+let CU=null;
+let currentTab=null;
+let viewMonth=new Date().toISOString().slice(0,7);
+let DB={ teachers:[], staff:[], income_categories:[], students:[], private_lessons:[], group_lessons:[], clockin:[], income:[] };
+let activeCat='全部';
+
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+
+async function loadAll(){
+  const keys=Object.keys(DB);
+  await Promise.all(keys.map(async k=>{ DB[k]=(await api('getAll',k))||[]; }));
+}
+
+// ============================================================
+// 計算打卡時數（分鐘）
+// ============================================================
+function calcMinutes(clockIn, clockOut){
+  if(!clockIn||!clockOut) return 0;
+  const [ih,im]=clockIn.split(':').map(Number);
+  const [oh,om]=clockOut.split(':').map(Number);
+  const diff=(oh*60+om)-(ih*60+im);
+  return diff>0?diff:0;
+}
+function fmtHours(min){ return (min/60).toFixed(1); }
+
+// ============================================================
+// 登入
+// ============================================================
+function onRoleChange(){
+  document.getElementById('teacherSelectWrap').style.display='none';
+}
+
+async function doLogin(){
+  const role=document.getElementById('loginRole').value;
+  const pw=document.getElementById('loginPassword').value;
+  const err=document.getElementById('loginError');
+  const btn=document.getElementById('loginBtn');
+  if(!role){ err.textContent='請選擇身分'; return; }
+  if(role==='teacher'&&!document.getElementById('loginTeacher').value){ err.textContent='請選擇老師姓名'; return; }
+  if(pw!==getPW(role)){ err.textContent='密碼錯誤'; return; }
+  err.textContent=''; btn.textContent='登入中...';
+  try{ await loadAll(); }
+  catch(e){ err.textContent='無法連線，請確認網址設定'; btn.textContent='登入'; return; }
+  CU={ role, name: role==='admin'?'管理員':document.getElementById('loginTeacher').value };
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('mainApp').style.display='block';
+  const badge=document.getElementById('roleBadge');
+  badge.className='role-badge '+(role==='admin'?'role-admin':'role-teacher');
+  badge.textContent=role==='admin'?'管理員':'老師';
+  document.getElementById('userNameDisplay').textContent=CU.name;
+  buildNav();
+  showTab(role==='admin'?'dashboard':'my_overview');
+  btn.textContent='登入';
+}
+
+function doLogout(){
+  CU=null;
+  document.getElementById('loginScreen').style.display='';
+  document.getElementById('mainApp').style.display='none';
+  document.getElementById('loginPassword').value='';
+  document.getElementById('loginRole').value='';
+  document.getElementById('teacherSelectWrap').style.display='none';
+}
+
+// ============================================================
+// Nav
+// ============================================================
+function buildNav(){
+  let tabs;
+  if(CU.role==='admin'){
+    tabs=[['dashboard','📊 總覽'],['private_admin','個別課'],['group_admin','團體課'],
+          ['clockin_admin','上班時數'],['income_admin','每月收入'],['settings','設定']];
+  } else {
+    tabs=[['my_overview','📊 我的總覽'],['my_private','個別課']];
+    if(GROUP_TEACHERS.includes(CU.name)) tabs.push(['my_group','團體課']);
+  }
+  document.getElementById('mainNav').innerHTML=tabs.map(([id,lbl])=>
+    `<button class="nav-btn" data-tab="${id}" onclick="showTab('${id}')">${lbl}</button>`).join('');
+}
+
+async function showTab(tab){
+  currentTab=tab;
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  setContent('<div class="loading-state"><span class="spinner"></span>載入中...</div>');
+  try{
+    await loadAll();
+    const fns={dashboard:renderDashboard,private_admin:renderPrivateAdmin,group_admin:renderGroupAdmin,
+      clockin_admin:renderClockinAdmin,income_admin:renderIncomeAdmin,settings:renderSettings,
+      my_overview:renderMyOverview,my_private:renderMyPrivate,my_group:renderMyGroup};
+    (fns[tab]||renderDashboard)();
+  } catch(e){ setContent(`<div class="alert alert-error">載入失敗：${e.message}</div>`); }
+}
+
+function setContent(html){ document.getElementById('mainContent').innerHTML=html; }
+
+// ============================================================
+// 月份導覽
+// ============================================================
+function monthNavHTML(){
+  return `<div class="month-nav">
+    <button onclick="changeMonth(-1)">‹</button>
+    <div class="month-label">${viewMonth}</div>
+    <button onclick="changeMonth(1)">›</button>
+  </div>`;
+}
+function changeMonth(d){
+  const [y,m]=viewMonth.split('-').map(Number);
+  const dt=new Date(y,m-1+d,1);
+  viewMonth=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');
+  showTab(currentTab);
+}
+
+// ============================================================
+// Dashboard
+// ============================================================
+function renderDashboard(){
+  const isDemo=!SCRIPT_URL||SCRIPT_URL.length<20;
+  const allMonths=new Set();
+  DB.private_lessons.forEach(r=>{ if(r.date&&r.date.length>=7) allMonths.add(r.date.slice(0,7)); });
+  DB.group_lessons.forEach(r=>{ if(r.date&&r.date.length>=7) allMonths.add(r.date.slice(0,7)); });
+  const thisMonth=new Date().toISOString().slice(0,7);
+  allMonths.add(thisMonth);
+  const months=[...allMonths].sort().reverse();
+  if(!window.dashMonth||!allMonths.has(window.dashMonth)) window.dashMonth=thisMonth;
+  const tm=window.dashMonth;
+
+  const mp=DB.private_lessons.filter(r=>r.date&&r.date.startsWith(tm));
+  const mg=DB.group_lessons.filter(r=>r.date&&r.date.startsWith(tm));
+  const mr=mp.reduce((s,r)=>s+(parseFloat(r.price)||0),0);
+  const mgr=mg.reduce((s,r)=>s+calcGroupFee(r.teacher,r.headcount),0);
+  const mi=DB.income.filter(r=>r.month&&r.month.startsWith(tm)).reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
+  const clockMin=DB.clockin.filter(r=>r.date&&r.date.startsWith(tm)).reduce((s,r)=>s+calcMinutes(r.clock_in,r.clock_out),0);
+  const monthOpts=months.map(m=>`<option value="${m}" ${m===tm?'selected':''}>${m}</option>`).join('');
+
+  setContent(`
+    ${isDemo?`<div class="setup-banner"><strong>⚠️ 示範模式（尚未連接 Google Sheets）</strong>在 HTML 頂部設定 <code>SCRIPT_URL</code> 後重新整理即可啟用雲端同步。</div>`:''}
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem;flex-wrap:wrap">
+      <div class="section-title">總覽</div>
+      <select onchange="window.dashMonth=this.value;renderDashboard()" style="max-width:160px">${monthOpts}</select>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">個別課堂數</div><div class="stat-value">${mp.length}</div><div class="stat-sub">堂</div></div>
+      <div class="stat-card"><div class="stat-label">團體課堂數</div><div class="stat-value">${mg.length}</div><div class="stat-sub">堂</div></div>
+      <div class="stat-card"><div class="stat-label">個別課收入</div><div class="stat-value">$${Math.round(mr).toLocaleString()}</div><div class="stat-sub">元</div></div>
+      <div class="stat-card"><div class="stat-label">團體課收入</div><div class="stat-value">$${Math.round(mgr).toLocaleString()}</div><div class="stat-sub">元</div></div>
+      <div class="stat-card"><div class="stat-label">其他收入</div><div class="stat-value">$${Math.round(mi).toLocaleString()}</div><div class="stat-sub">元</div></div>
+      <div class="stat-card"><div class="stat-label">行政總工時</div><div class="stat-value">${fmtHours(clockMin)}</div><div class="stat-sub">小時</div></div>
+    </div>
+    <div class="sub-title" style="margin-bottom:.75rem">老師總表</div>
+    <div class="table-wrap">${teacherFullSummaryTable(tm)}</div>`);
+}
+
+
+function teacherFullSummaryTable(month){
+  if(!DB.teachers.length) return '<div class="empty-state">尚無老師資料</div>';
+  let grandPrivate=0, grandGroup=0, grandTotal=0;
+  const rows=DB.teachers.map(t=>{
+    const pl=DB.private_lessons.filter(r=>r.teacher===t.name&&r.date&&r.date.startsWith(month));
+    const gl=DB.group_lessons.filter(r=>r.teacher===t.name&&r.date&&r.date.startsWith(month));
+    const pr=pl.reduce((s,r)=>s+(parseFloat(r.price)||0),0);
+    const gr=gl.reduce((s,r)=>s+calcGroupFee(r.teacher,r.headcount),0);
+    const tot=pr+gr;
+    grandPrivate+=pr; grandGroup+=gr; grandTotal+=tot;
+    const isGrp=GROUP_TEACHERS.includes(t.name);
+    return `<tr>
+      <td style="font-weight:500">${t.name}</td>
+      <td>${pl.length} 堂</td>
+      <td>$${Math.round(pr).toLocaleString()}</td>
+      <td>${isGrp?gl.length+' 堂':'—'}</td>
+      <td>${isGrp?'$'+Math.round(gr).toLocaleString():'—'}</td>
+      <td style="font-weight:600;color:#15803d">$${Math.round(tot).toLocaleString()}</td>
+    </tr>`;
+  }).join('');
+  return `<table><thead><tr>
+    <th>老師</th><th>個別課</th><th>個別課收費</th><th>團體課</th><th>團體課收費</th><th>合計</th>
+  </tr></thead><tbody>${rows}
+    <tr class="summary-row">
+      <td>合計</td><td></td><td>$${Math.round(grandPrivate).toLocaleString()}</td>
+      <td></td><td>$${Math.round(grandGroup).toLocaleString()}</td>
+      <td style="color:#15803d;font-weight:600">$${Math.round(grandTotal).toLocaleString()}</td>
+    </tr>
+  </tbody></table>`;
+}
+
+// ============================================================
+// 管理員：個別課
+// ============================================================
+let adminSelectedTeacher='';
+let adminSelectedStudent='';
+
+function renderPrivateAdmin(){
+  const lessons=DB.private_lessons.filter(r=>r.date&&r.date.startsWith(viewMonth));
+  const teachers=[...new Set(lessons.map(r=>r.teacher).filter(Boolean))].sort();
+
+  // If selected teacher no longer valid, reset
+  if(adminSelectedTeacher && !teachers.includes(adminSelectedTeacher)) adminSelectedTeacher='';
+
+  const teacherOpts='<option value="">— 選擇老師 —</option>'+teachers.map(t=>`<option value="${t}" ${adminSelectedTeacher===t?'selected':''}>${t}</option>`).join('');
+
+  // Students for selected teacher
+  let studentSection='';
+  let detailSection='';
+  if(adminSelectedTeacher){
+    const teacherLessons=lessons.filter(r=>r.teacher===adminSelectedTeacher);
+    const students=[...new Set(teacherLessons.map(r=>r.student).filter(Boolean))].sort();
+    if(adminSelectedStudent && !students.includes(adminSelectedStudent)) adminSelectedStudent='';
+    const studentOpts='<option value="">— 選擇學生（全部）—</option>'+students.map(s=>`<option value="${s}" ${adminSelectedStudent===s?'selected':''}>${s}</option>`).join('');
+    studentSection=`<div class="form-group" style="max-width:200px">
+      <label class="form-label">學生</label>
+      <select onchange="adminSelectedStudent=this.value;renderPrivateAdmin()">${studentOpts}</select>
+    </div>`;
+
+    // Filter lessons
+    const filtered=adminSelectedStudent?teacherLessons.filter(r=>r.student===adminSelectedStudent):teacherLessons;
+    const total=filtered.reduce((s,r)=>s+(parseFloat(r.price)||0),0);
+
+    if(adminSelectedStudent){
+      // Show dates for specific student
+      const sorted=filtered.sort((a,b)=>a.date>b.date?1:-1);
+      const rows=sorted.map(r=>`<tr>
+        <td>${r.date}</td>
+        <td>$${parseFloat(r.price)||0}</td>
+        <td><button class="btn-sm btn-danger" onclick="deleteRecord('private_lessons','${r.id}')">刪除</button></td>
+      </tr>`).join('');
+      detailSection=`
+        <div class="stats-grid" style="margin-bottom:1rem">
+          <div class="stat-card"><div class="stat-label">本月堂數</div><div class="stat-value">${filtered.length}</div><div class="stat-sub">堂</div></div>
+          <div class="stat-card"><div class="stat-label">本月學費</div><div class="stat-value">$${Math.round(total).toLocaleString()}</div><div class="stat-sub">元</div></div>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>上課日期</th><th>單堂費用</th><th>操作</th></tr></thead>
+          <tbody>${rows}
+            <tr class="summary-row"><td>合計</td><td style="color:#15803d;font-weight:600">$${Math.round(total).toLocaleString()}</td><td></td></tr>
+          </tbody>
+        </table></div>`;
+    } else {
+      // Show all students summary for this teacher
+      const byStudent={};
+      filtered.forEach(r=>{ if(!byStudent[r.student]) byStudent[r.student]=[]; byStudent[r.student].push(r); });
+      const rows=Object.entries(byStudent).map(([s,rs])=>{
+        const cnt=rs.length, tot=rs.reduce((sum,r)=>sum+(parseFloat(r.price)||0),0);
+        const dates=rs.sort((a,b)=>a.date>b.date?1:-1).map(r=>r.date).join('、');
+        return `<tr><td>${s}</td><td>${cnt} 堂</td><td>$${Math.round(tot).toLocaleString()}</td><td style="font-size:12px;color:#888">${dates}</td>
+          <td><button class="btn-sm btn-danger" onclick="deleteRecord('private_lessons','${rs[rs.length-1].id}')">刪除最新</button></td></tr>`;
+      }).join('');
+      detailSection=`
+        <div class="stat-card" style="display:inline-block;margin-bottom:1rem;min-width:200px">
+          <div class="stat-label">${adminSelectedTeacher} 老師本月</div>
+          <div class="stat-value">${filtered.length} 堂 / $${Math.round(total).toLocaleString()}</div>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>學生</th><th>堂數</th><th>學費</th><th>上課日期</th><th>操作</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table></div>`;
+    }
+  }
+
+  setContent(`
+    ${monthNavHTML()}
+    <div class="section-header">
+      <div class="section-title">個別課記錄</div>
+      <button onclick="openPrivateModal()">+ 新增課堂</button>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1.25rem;align-items:flex-end">
+      <div class="form-group" style="max-width:200px;margin-bottom:0">
+        <label class="form-label">老師</label>
+        <select onchange="adminSelectedTeacher=this.value;adminSelectedStudent='';renderPrivateAdmin()">${teacherOpts}</select>
+      </div>
+      ${studentSection}
+    </div>
+    ${detailSection||'<div class="table-wrap"><div class="empty-state">請先選擇老師</div></div>'}`);
+}
+
+// ============================================================
+// 管理員：團體課
+// ============================================================
+// 計算團體課費用
+function calcGroupFee(teacher, headcount) {
+  const n = parseInt(headcount) || 0;
+  if (teacher === '廷廷') return n * 220;
+  if (teacher === 'yukie') return n * 250;
+  if (teacher === '俐俐') {
+    if (n <= 0) return 0;
+    if (n <= 4) return 700;
+    return 700 + (n - 4) * 80;
+  }
+  if (teacher === '馬希') return n > 0 ? 600 : 0;
+  if (teacher === '乖乖') return n * 220;
+  return n * 220; // 預設
+}
+function feeDesc(teacher, headcount) {
+  const n = parseInt(headcount) || 0;
+  if (teacher === '廷廷') return `${n} 人 × $220`;
+  if (teacher === 'yukie') return `${n} 人 × $250`;
+  if (teacher === '俐俐') {
+    if (n <= 4) return `${n} 人（4人以下 $700）`;
+    return `${n} 人（$700 + ${n-4} × $80）`;
+  }
+  if (teacher === '馬希') return `每堂 $600`;
+  if (teacher === '乖乖') return `${n} 人 × $220`;
+  return `${n} 人`;
+}
+
+function renderGroupAdmin(){
+  const rows=DB.group_lessons.filter(r=>r.date&&r.date.startsWith(viewMonth)).sort((a,b)=>a.date>b.date?1:-1);
+  const totalHead=rows.reduce((s,r)=>s+(parseInt(r.headcount)||0),0);
+  const totalRev=rows.reduce((s,r)=>s+calcGroupFee(r.teacher,r.headcount),0);
+  // 按老師分組統計
+  const byTeacher={};
+  rows.forEach(r=>{
+    const t=r.teacher||'未知';
+    if(!byTeacher[t]) byTeacher[t]={count:0,head:0,rev:0};
+    byTeacher[t].count++;
+    byTeacher[t].head+=(parseInt(r.headcount)||0);
+    byTeacher[t].rev+=calcGroupFee(r.teacher,r.headcount);
+  });
+  const teacherCards=Object.entries(byTeacher).map(([t,v])=>`
+    <div class="stat-card"><div class="stat-label">${t} 老師</div><div class="stat-value" style="font-size:18px">${v.count} 堂</div><div class="stat-sub">${v.head} 人次 / $${v.rev.toLocaleString()}</div></div>`).join('');
+  setContent(`
+    ${monthNavHTML()}
+    <div class="section-header"><div class="section-title">團體課記錄</div><button onclick="openGroupModal()">+ 新增課堂</button></div>
+    <div class="stats-grid" style="margin-bottom:1rem">
+      <div class="stat-card"><div class="stat-label">本月總堂數</div><div class="stat-value">${rows.length}</div><div class="stat-sub">堂</div></div>
+      <div class="stat-card"><div class="stat-label">本月總人次</div><div class="stat-value">${totalHead}</div><div class="stat-sub">人次</div></div>
+      <div class="stat-card"><div class="stat-label">月底結算收入</div><div class="stat-value" style="color:#15803d">$${totalRev.toLocaleString()}</div><div class="stat-sub">各老師合計</div></div>
+    </div>
+    ${teacherCards?`<div class="sub-title" style="margin-bottom:.75rem">各老師統計</div><div class="stats-grid" style="margin-bottom:1.25rem">${teacherCards}</div>`:''}
+    <div class="sub-title" style="margin-bottom:.75rem">課堂明細</div>
+    <div class="table-wrap">${groupTableHTML(rows,true)}</div>`);
+}
+
+function groupTableHTML(rows,showDel){
+  if(!rows.length) return '<div class="empty-state">本月尚無記錄</div>';
+  const totalHead=rows.reduce((s,r)=>s+(parseInt(r.headcount)||0),0);
+  const totalRev=rows.reduce((s,r)=>s+calcGroupFee(r.teacher,r.headcount),0);
+  return `<table><thead><tr><th>日期</th><th>時間</th><th>課程名稱</th><th>老師</th><th>人數</th><th>收費</th><th>小計</th>${showDel?'<th>操作</th>':''}</tr></thead><tbody>
+    ${rows.map(r=>`<tr>
+      <td>${r.date||''}</td><td>${r.time||''}</td><td>${r.className||''}</td>
+      <td>${r.teacher||''}</td><td>${r.headcount||0}人</td>
+      <td style="font-size:12px;color:#888">${feeDesc(r.teacher,r.headcount)}</td>
+      <td>$${calcGroupFee(r.teacher,r.headcount).toLocaleString()}</td>
+      ${showDel?`<td><button class="btn-sm btn-danger" onclick="deleteRecord('group_lessons','${r.id}')">刪除</button></td>`:''}
+    </tr>`).join('')}
+    <tr class="summary-row"><td colspan="4">本月合計</td><td>${totalHead} 人次</td><td></td><td style="font-weight:600;color:#15803d">$${totalRev.toLocaleString()}</td>${showDel?'<td></td>':''}</tr>
+  </tbody></table>`;
+}
+
+// ============================================================
+// 管理員：上班時數（打卡）
+// ============================================================
+function renderClockinAdmin(){
+  const records=DB.clockin.filter(r=>r.date&&r.date.startsWith(viewMonth));
+  // 各行政人員本月累計
+  const byStaff={};
+  DB.staff.forEach(s=>{ byStaff[s.name]=0; });
+  records.forEach(r=>{ if(byStaff[r.staff]!==undefined) byStaff[r.staff]+=calcMinutes(r.clock_in,r.clock_out); });
+
+  const staffCards=DB.staff.map(s=>`
+    <div class="staff-card">
+      <div class="staff-name">${s.name}</div>
+      <div class="staff-hours">${fmtHours(byStaff[s.name]||0)}</div>
+      <div class="staff-sub">小時（本月累計）</div>
+    </div>`).join('');
+
+  const tableRows=records.sort((a,b)=>a.date>b.date?1:-1).map(r=>{
+    const min=calcMinutes(r.clock_in,r.clock_out);
+    return `<tr>
+      <td>${r.date}</td><td>${r.staff}</td>
+      <td>${r.clock_in||'—'}</td><td>${r.clock_out||'—'}</td>
+      <td>${min?fmtHours(min)+' hr':'未打下班'}</td>
+      <td>${r.note||'—'}</td>
+      <td><button class="btn-sm btn-danger" onclick="deleteRecord('clockin','${r.id}')">刪除</button></td>
+    </tr>`;
+  }).join('');
+
+  setContent(`
+    ${monthNavHTML()}
+    <div class="section-header">
+      <div class="section-title">行政人員上班時數</div>
+      <button onclick="openClockinModal()">+ 新增打卡</button>
+    </div>
+    ${DB.staff.length?`<div class="staff-grid">${staffCards}</div>`:'<div class="alert alert-info" style="margin-bottom:1rem">尚未新增行政人員，請至設定頁面新增。</div>'}
+    <div class="sub-title" style="margin-bottom:.75rem">打卡明細</div>
+    <div class="table-wrap">
+      ${tableRows?`<table><thead><tr><th>日期</th><th>人員</th><th>上班</th><th>下班</th><th>時數</th><th>備註</th><th>操作</th></tr></thead><tbody>${tableRows}</tbody></table>`
+        :'<div class="empty-state">本月尚無打卡記錄</div>'}
+    </div>`);
+}
+
+// ============================================================
+// 管理員：每月收入
+// ============================================================
+function renderIncomeAdmin(){
+  const allCats=['全部',...DB.income_categories.map(c=>c.name)];
+  const records=DB.income.filter(r=>r.month&&r.month.startsWith(viewMonth));
+  const filtered=activeCat==='全部'?records:records.filter(r=>r.category===activeCat);
+  const total=filtered.reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
+
+  const catTabs=allCats.map(c=>`<button class="cat-tab${activeCat===c?' active':''}" onclick="setActiveCat('${c}')">${c}</button>`).join('');
+
+  const tableRows=filtered.sort((a,b)=>a.date>b.date?1:-1).map(r=>`<tr>
+    <td>${r.date||r.month||''}</td>
+    <td><span class="badge badge-amber">${r.category||'—'}</span></td>
+    <td>${r.description||'—'}</td>
+    <td style="font-weight:500">$${Math.round(parseFloat(r.amount)||0).toLocaleString()}</td>
+    <td>${r.note||'—'}</td>
+    <td><button class="btn-sm btn-danger" onclick="deleteRecord('income','${r.id}')">刪除</button></td>
+  </tr>`).join('');
+
+  // 分類小計
+  const catTotals=records.reduce((acc,r)=>{
+    const c=r.category||'其他'; acc[c]=(acc[c]||0)+(parseFloat(r.amount)||0); return acc;
+  },{});
+  const catSummary=Object.entries(catTotals).map(([c,t])=>`
+    <div class="stat-card"><div class="stat-label">${c}</div><div class="stat-value" style="font-size:18px">$${Math.round(t).toLocaleString()}</div></div>`).join('');
+
+  setContent(`
+    ${monthNavHTML()}
+    <div class="section-header">
+      <div class="section-title">每月收入</div>
+      <button onclick="openIncomeModal()">+ 新增收入</button>
+    </div>
+    <div class="stats-grid" style="margin-bottom:1rem">
+      <div class="stat-card"><div class="stat-label">本月總收入</div><div class="stat-value">$${Math.round(records.reduce((s,r)=>s+(parseFloat(r.amount)||0),0)).toLocaleString()}</div><div class="stat-sub">元</div></div>
+      ${catSummary}
+    </div>
+    <div class="cat-tabs">${catTabs}</div>
+    <div class="table-wrap">
+      ${tableRows?`<table><thead><tr><th>日期</th><th>分類</th><th>說明</th><th>金額</th><th>備註</th><th>操作</th></tr></thead><tbody>${tableRows}
+        <tr class="summary-row"><td colspan="3">篩選合計</td><td>$${Math.round(total).toLocaleString()}</td><td colspan="2"></td></tr>
+      </tbody></table>`:'<div class="empty-state">本月尚無收入記錄</div>'}
+    </div>`);
+}
+
+function setActiveCat(cat){ activeCat=cat; showTab(currentTab); }
+
+// ============================================================
+// 設定
+// ============================================================
+function renderSettings(){
+  setContent(`
+    <div class="section-title" style="margin-bottom:.75rem">老師管理</div>
+    <div style="display:flex;gap:8px;margin-bottom:1rem">
+      <input type="text" id="newTeacherName" placeholder="老師姓名" style="max-width:200px">
+      <button onclick="addItem('teachers','newTeacherName')">新增老師</button>
+    </div>
+    <div class="table-wrap" style="margin-bottom:1.5rem">
+      <table><thead><tr><th>老師姓名</th><th>負責項目</th><th>操作</th></tr></thead><tbody>
+        ${DB.teachers.map(t=>`<tr>
+          <td>${t.name}</td>
+          <td>${GROUP_TEACHERS.includes(t.name)?'<span class="badge badge-purple">個別課＋團體課</span>':'個別課'}</td>
+          <td><button class="btn-sm btn-danger" onclick="removeItem('teachers','${t.id||t.name}')">移除</button></td>
+        </tr>`).join('')}
+      </tbody></table>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-title" style="margin-bottom:.75rem">行政人員管理</div>
+    <div style="display:flex;gap:8px;margin-bottom:1rem">
+      <input type="text" id="newStaffName" placeholder="行政人員姓名" style="max-width:200px">
+      <button onclick="addItem('staff','newStaffName')">新增人員</button>
+    </div>
+    <div class="table-wrap" style="margin-bottom:1.5rem">
+      <table><thead><tr><th>姓名</th><th>操作</th></tr></thead><tbody>
+        ${DB.staff.length?DB.staff.map(s=>`<tr>
+          <td>${s.name}</td>
+          <td><button class="btn-sm btn-danger" onclick="removeItem('staff','${s.id||s.name}')">移除</button></td>
+        </tr>`).join(''):'<tr><td colspan="2" style="text-align:center;color:#bbb;padding:1.5rem">尚無行政人員</td></tr>'}
+      </tbody></table>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-title" style="margin-bottom:.75rem">收入分類管理</div>
+    <div style="display:flex;gap:8px;margin-bottom:1rem">
+      <input type="text" id="newCatName" placeholder="分類名稱（如：學費）" style="max-width:200px">
+      <button onclick="addItem('income_categories','newCatName')">新增分類</button>
+    </div>
+    <div class="table-wrap" style="margin-bottom:1.5rem">
+      <table><thead><tr><th>分類名稱</th><th>操作</th></tr></thead><tbody>
+        ${DB.income_categories.length?DB.income_categories.map(c=>`<tr>
+          <td>${c.name}</td>
+          <td><button class="btn-sm btn-danger" onclick="removeItem('income_categories','${c.id||c.name}')">移除</button></td>
+        </tr>`).join(''):'<tr><td colspan="2" style="text-align:center;color:#bbb;padding:1.5rem">尚無分類</td></tr>'}
+      </tbody></table>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-title" style="margin-bottom:.75rem">學生資料庫</div>
+    <div style="font-size:13px;color:#999;margin-bottom:.75rem">新增學生後，老師記錄上課時選擇學生即自動帶出價格。</div>
+    <div style="display:grid;grid-template-columns:1fr 120px 80px;gap:8px;margin-bottom:1rem;align-items:end">
+      <div><label class="form-label">學生姓名</label><input type="text" id="newStudentName" placeholder="學生姓名"></div>
+      <div><label class="form-label">單堂價格</label>
+        <select id="newStudentPrice">
+          <option value="490">$490</option>
+          <option value="525">$525</option>
+          <option value="560">$560</option>
+          <option value="600">$600</option>
+        </select>
+      </div>
+      <div><label class="form-label" style="visibility:hidden">x</label><button style="width:100%" onclick="addStudent()">新增</button></div>
+    </div>
+    <div class="table-wrap" style="margin-bottom:1.5rem">
+      <table><thead><tr><th>學生姓名</th><th>單堂價格</th><th>操作</th></tr></thead><tbody>
+        ${DB.students.length?DB.students.map(s=>`<tr>
+          <td>${s.name}</td>
+          <td><span class="badge badge-amber">$${s.price}</span></td>
+          <td><button class="btn-sm btn-danger" onclick="removeStudent('${s.id}')">移除</button></td>
+        </tr>`).join(''):'<tr><td colspan="3" style="text-align:center;color:#bbb;padding:1.5rem">尚無學生資料</td></tr>'}
+      </tbody></table>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-title" style="margin-bottom:.75rem">修改密碼</div>
+    <div style="display:grid;gap:1rem;max-width:320px">
+      <div class="form-group"><label class="form-label">管理員新密碼</label>
+        <div style="display:flex;gap:8px"><input type="password" id="newAdminPW" placeholder="至少4個字">
+        <button onclick="changePW('admin')">儲存</button></div></div>
+      <div class="form-group"><label class="form-label">老師新密碼</label>
+        <div style="display:flex;gap:8px"><input type="password" id="newTeacherPW" placeholder="至少4個字">
+        <button onclick="changePW('teacher')">儲存</button></div></div>
+    </div>`);
+}
+
+// ============================================================
+// 老師畫面
+// ============================================================
+function renderMyOverview(){
+  // Private lessons
+  const privateLessons=DB.private_lessons.filter(r=>r.teacher===CU.name&&r.date&&r.date.startsWith(viewMonth));
+  const privateTotal=privateLessons.reduce((s,r)=>s+(parseFloat(r.price)||0),0);
+  const byStudent={};
+  privateLessons.forEach(r=>{ if(!byStudent[r.student]) byStudent[r.student]=[]; byStudent[r.student].push(r); });
+
+  // Group lessons
+  const groupLessons=DB.group_lessons.filter(r=>r.teacher===CU.name&&r.date&&r.date.startsWith(viewMonth));
+  const groupTotal=groupLessons.reduce((s,r)=>s+calcGroupFee(r.teacher,r.headcount),0);
+  const groupHead=groupLessons.reduce((s,r)=>s+(parseInt(r.headcount)||0),0);
+
+  const isGroup=GROUP_TEACHERS.includes(CU.name);
+  const grandTotal=privateTotal+(isGroup?groupTotal:0);
+
+  // Student cards for private
+  const studentCards=Object.entries(byStudent).map(([s,rs])=>{
+    const cnt=rs.length,tot=rs.reduce((sum,r)=>sum+(parseFloat(r.price)||0),0);
+    const dates=rs.sort((a,b)=>a.date>b.date?1:-1).map(r=>`<span class="date-chip">${r.date}</span>`).join('');
+    const cardId='ov_'+s.replace(/[^a-zA-Z0-9]/g,'_');
+    return `<div class="student-card" onclick="toggleCard('${cardId}')" style="cursor:pointer">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="student-name">${s}</div>
+        <div style="font-size:12px;color:#aaa" id="${cardId}_arrow">▼</div>
+      </div>
+      <div class="student-stats">
+        <div class="student-stat"><div class="student-stat-val">${cnt}</div><div class="student-stat-lbl">堂</div></div>
+        <div class="student-stat"><div class="student-stat-val">$${Math.round(tot).toLocaleString()}</div><div class="student-stat-lbl">本月</div></div>
+      </div>
+      <div id="${cardId}" style="display:none;margin-top:10px;padding-top:8px;border-top:0.5px solid #f0efec">
+        <div style="font-size:11px;color:#999;margin-bottom:5px">上課日期</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">${dates}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  setContent(`
+    ${monthNavHTML()}
+    <div class="section-title" style="margin-bottom:1rem">本月總覽</div>
+    <div class="stats-grid" style="margin-bottom:1.5rem">
+      <div class="stat-card"><div class="stat-label">個別課堂數</div><div class="stat-value">${privateLessons.length}</div><div class="stat-sub">堂</div></div>
+      <div class="stat-card"><div class="stat-label">個別課收費</div><div class="stat-value">$${Math.round(privateTotal).toLocaleString()}</div><div class="stat-sub">元</div></div>
+      ${isGroup?`
+      <div class="stat-card"><div class="stat-label">團體課堂數</div><div class="stat-value">${groupLessons.length}</div><div class="stat-sub">堂</div></div>
+      <div class="stat-card"><div class="stat-label">團體課收費</div><div class="stat-value">$${Math.round(groupTotal).toLocaleString()}</div><div class="stat-sub">${groupHead} 人次</div></div>`:''}
+      <div class="stat-card" style="border-color:#15803d"><div class="stat-label">本月合計</div><div class="stat-value" style="color:#15803d">$${Math.round(grandTotal).toLocaleString()}</div><div class="stat-sub">元</div></div>
+    </div>
+    <div class="sub-title" style="margin-bottom:.75rem">個別課學生統計</div>
+    ${studentCards?`<div class="student-grid">${studentCards}</div>`:'<div class="table-wrap"><div class="empty-state">本月尚無個別課記錄</div></div>'}
+    ${isGroup&&groupLessons.length?`
+    <div class="sub-title" style="margin-bottom:.75rem;margin-top:1.25rem">團體課明細</div>
+    <div class="table-wrap">${groupTableHTML(groupLessons,false)}</div>`:''}
+  `);
+}
+
+function renderMyPrivate(){
+  const lessons=DB.private_lessons.filter(r=>r.teacher===CU.name&&r.date&&r.date.startsWith(viewMonth));
+  const byStudent={};
+  lessons.forEach(r=>{ if(!byStudent[r.student]) byStudent[r.student]=[]; byStudent[r.student].push(r); });
+  const total=lessons.reduce((s,r)=>s+(parseFloat(r.price)||0),0);
+
+  const cards=Object.entries(byStudent).map(([s,rs])=>{
+    const cnt=rs.length,tot=rs.reduce((sum,r)=>sum+(parseFloat(r.price)||0),0);
+    const dates=rs.sort((a,b)=>a.date>b.date?1:-1).map(r=>`<span class="date-chip">${r.date}</span>`).join('');
+    const cardId='card_'+s.replace(/[^a-zA-Z0-9]/g,'_');
+    return `<div class="student-card" onclick="toggleCard('${cardId}')" style="cursor:pointer">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="student-name">${s}</div>
+        <div style="font-size:12px;color:#aaa" id="${cardId}_arrow">▼</div>
+      </div>
+      <div class="student-stats">
+        <div class="student-stat"><div class="student-stat-val">${cnt}</div><div class="student-stat-lbl">堂</div></div>
+        <div class="student-stat"><div class="student-stat-val">$${Math.round(tot).toLocaleString()}</div><div class="student-stat-lbl">本月</div></div>
+      </div>
+      <div id="${cardId}" style="display:none;margin-top:10px;padding-top:8px;border-top:0.5px solid #f0efec">
+        <div style="font-size:11px;color:#999;margin-bottom:5px">上課日期</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px">${dates}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const tableRows=lessons.sort((a,b)=>a.date>b.date?1:-1).map(r=>`<tr>
+    <td>${r.date}</td><td>${r.student}</td><td>$${parseFloat(r.price)||0}</td>
+  </tr>`).join('');
+
+  setContent(`
+    ${monthNavHTML()}
+    <div class="section-header">
+      <div class="section-title">我的個別課</div>
+      <button onclick="openPrivateModal()">+ 新增課堂</button>
+    </div>
+    <div class="stats-grid" style="margin-bottom:1.25rem">
+      <div class="stat-card"><div class="stat-label">本月堂數</div><div class="stat-value">${lessons.length}</div><div class="stat-sub">堂</div></div>
+      <div class="stat-card"><div class="stat-label">本月總收入</div><div class="stat-value">$${Math.round(total).toLocaleString()}</div><div class="stat-sub">元</div></div>
+    </div>
+    ${cards?`<div class="sub-title" style="margin-bottom:.75rem">學生統計</div><div class="student-grid">${cards}</div>`:''}
+    <div class="sub-title" style="margin-bottom:.75rem">課堂明細</div>
+    <div class="table-wrap">${tableRows?`<table><thead><tr><th>日期</th><th>學生</th><th>單堂</th></tr></thead><tbody>${tableRows}</tbody></table>`:'<div class="empty-state">本月尚無記錄</div>'}</div>`);
+}
+
+function renderMyGroup(){
+  const rows=DB.group_lessons.filter(r=>r.teacher===CU.name&&r.date&&r.date.startsWith(viewMonth)).sort((a,b)=>a.date>b.date?1:-1);
+  const totalHead=rows.reduce((s,r)=>s+(parseInt(r.headcount)||0),0);
+  const totalRev=rows.reduce((s,r)=>s+calcGroupFee(r.teacher,r.headcount),0);
+  setContent(`
+    ${monthNavHTML()}
+    <div class="section-header"><div class="section-title">我的團體課</div><button onclick="openGroupModal()">+ 新增課堂</button></div>
+    <div class="stats-grid" style="margin-bottom:1.25rem">
+      <div class="stat-card"><div class="stat-label">本月堂數</div><div class="stat-value">${rows.length}</div><div class="stat-sub">堂</div></div>
+      <div class="stat-card"><div class="stat-label">本月總人次</div><div class="stat-value">${totalHead}</div><div class="stat-sub">人次</div></div>
+      <div class="stat-card"><div class="stat-label">月底結算收入</div><div class="stat-value" style="color:#15803d">$${totalRev.toLocaleString()}</div><div class="stat-sub">本月合計</div></div>
+    </div>
+    <div class="table-wrap">${groupTableHTML(rows,false)}</div>`);
+}
+
+// ============================================================
+// Modals
+// ============================================================
+function showModal(title,body,submitFn){
+  document.getElementById('modalContainer').innerHTML=`
+    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal">
+        <div class="modal-title">${title}</div>${body}
+        <div id="modalAlert"></div>
+        <div class="modal-actions">
+          <button onclick="closeModal()">取消</button>
+          <button class="btn-primary" style="width:auto" id="submitBtn" onclick="${submitFn}">儲存</button>
+        </div>
+      </div>
+    </div>`;
+}
+function closeModal(){ document.getElementById('modalContainer').innerHTML=''; }
+function g(id){ const el=document.getElementById(id); return el?el.value.trim():null; }
+function showModalAlert(msg){ const el=document.getElementById('modalAlert'); if(el) el.innerHTML=`<div class="alert alert-error">${msg}</div>`; }
+
+function openPrivateModal(){
+  const today=new Date().toISOString().slice(0,10);
+  const tOpts=CU.role==='admin'
+    ? DB.teachers.map(t=>`<option value="${t.name}">${t.name}</option>`).join('')
+    : `<option value="${CU.name}">${CU.name}</option>`;
+  const sOpts=DB.students.length
+    ? '<option value="">— 選擇學生 —</option>'+DB.students.map(s=>`<option value="${s.name}" data-price="${s.price}">${s.name}（$${s.price}）</option>`).join('')
+    : '<option value="">— 尚無學生資料，請先到設定頁面新增 —</option>';
+  showModal('新增個別課課堂',`
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">上課日期 *</label><input type="date" id="f_date" value="${today}"></div>
+      <div class="form-group"><label class="form-label">老師 *</label><select id="f_teacher">${tOpts}</select></div>
+    </div>
+    <div class="form-group"><label class="form-label">學生 *</label>
+      <select id="f_student" onchange="onStudentChange()">${sOpts}</select>
+    </div>
+    <div class="form-group"><label class="form-label">單堂價格（元）</label>
+      <input type="number" id="f_price" value="0" min="0" step="5" readonly style="background:#f5f5f3;color:#888">
+    </div>
+    <div class="alert alert-info" style="font-size:12px">選擇學生後價格自動帶入。每次上課新增一筆，系統自動統計當月堂數與學費。</div>`,
+    "submitPrivate()");
+}
+
+function onStudentChange(){
+  const sel=document.getElementById('f_student');
+  const opt=sel.options[sel.selectedIndex];
+  const price=opt?opt.getAttribute('data-price'):'0';
+  document.getElementById('f_price').value=price||'0';
+}
+
+function openGroupModal(){
+  const today=new Date().toISOString().slice(0,10);
+  const tOpts=CU.role==='admin'
+    ? GROUP_TEACHERS.map(n=>`<option value="${n}">${n}老師</option>`).join('')
+    : `<option value="${CU.name}">${CU.name}老師</option>`;
+  showModal('新增團體課課堂',`
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">上課日期 *</label><input type="date" id="f_date" value="${today}"></div>
+      <div class="form-group"><label class="form-label">上課時間 *</label><input type="time" id="f_time" value="10:00"></div>
+    </div>
+    <div class="form-group"><label class="form-label">課程名稱 *</label><input type="text" id="f_className" placeholder="例：兒童鋼琴班"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">負責老師</label><select id="f_teacher">${tOpts}</select></div>
+      <div class="form-group"><label class="form-label">上課人數</label><input type="number" id="f_headcount" value="1" min="1"></div>
+    </div>`,
+    "submitGroup()");
+}
+
+function openClockinModal(){
+  const today=new Date().toISOString().slice(0,10);
+  const sOpts=DB.staff.map(s=>`<option value="${s.name}">${s.name}</option>`).join('');
+  if(!sOpts){ alert('請先在設定頁面新增行政人員'); return; }
+  showModal('新增打卡記錄',`
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">日期 *</label><input type="date" id="f_date" value="${today}"></div>
+      <div class="form-group"><label class="form-label">行政人員 *</label><select id="f_staff">${sOpts}</select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">上班時間 *</label><input type="time" id="f_in" value="09:00"></div>
+      <div class="form-group"><label class="form-label">下班時間</label><input type="time" id="f_out" value="18:00"></div>
+    </div>
+    <div class="form-group"><label class="form-label">備註</label><input type="text" id="f_note" placeholder="選填"></div>`,
+    "submitClockin()");
+}
+
+function openIncomeModal(){
+  const today=new Date().toISOString().slice(0,10);
+  const catOpts=DB.income_categories.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
+  if(!catOpts){ alert('請先在設定頁面新增收入分類'); return; }
+  showModal('新增收入記錄',`
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">日期 *</label><input type="date" id="f_date" value="${today}"></div>
+      <div class="form-group"><label class="form-label">分類 *</label><select id="f_cat">${catOpts}</select></div>
+    </div>
+    <div class="form-group"><label class="form-label">說明</label><input type="text" id="f_desc" placeholder="例：王小明 4月學費"></div>
+    <div class="form-group"><label class="form-label">金額（元） *</label><input type="number" id="f_amount" value="0" min="0" step="100"></div>
+    <div class="form-group"><label class="form-label">備註</label><input type="text" id="f_note" placeholder="選填"></div>`,
+    "submitIncome()");
+}
+
+// Submit handlers
+async function submitPrivate(){
+  if(!g('f_date')||!g('f_teacher')||!g('f_student')){ showModalAlert('請填寫必要欄位（*）'); return; }
+  const price=document.getElementById('f_price').value||'0';
+  await submitRecord('private_lessons',{id:uid(),date:g('f_date'),teacher:g('f_teacher'),student:g('f_student'),price});
+}
+async function submitGroup(){
+  if(!g('f_date')||!g('f_time')||!g('f_className')){ showModalAlert('請填寫必要欄位（*）'); return; }
+  await submitRecord('group_lessons',{id:uid(),date:g('f_date'),time:g('f_time'),className:g('f_className'),teacher:g('f_teacher'),headcount:g('f_headcount')||'1'});
+}
+async function submitClockin(){
+  if(!g('f_date')||!g('f_staff')||!g('f_in')){ showModalAlert('請填寫必要欄位（*）'); return; }
+  await submitRecord('clockin',{id:uid(),date:g('f_date'),staff:g('f_staff'),clock_in:g('f_in'),clock_out:g('f_out')||'',note:g('f_note')});
+}
+async function submitIncome(){
+  if(!g('f_date')||!g('f_cat')||!g('f_amount')){ showModalAlert('請填寫必要欄位（*）'); return; }
+  const month=g('f_date').slice(0,7);
+  await submitRecord('income',{id:uid(),date:g('f_date'),month,category:g('f_cat'),description:g('f_desc')||'',amount:g('f_amount'),note:g('f_note')});
+}
+
+async function submitRecord(sheet,rec){
+  const btn=document.getElementById('submitBtn');
+  btn.innerHTML='<span class="spinner"></span>儲存中...'; btn.disabled=true;
+  try{ await api('append',sheet,{data:rec}); closeModal(); showTab(currentTab); }
+  catch(e){ showModalAlert('儲存失敗：'+e.message); btn.innerHTML='儲存'; btn.disabled=false; }
+}
+
+async function deleteRecord(sheet,id){
+  if(!confirm('確定要刪除這筆資料？')) return;
+  try{ await api('delete',sheet,{id}); showTab(currentTab); }
+  catch(e){ alert('刪除失敗：'+e.message); }
+}
+
+// Settings helpers
+async function addItem(sheet,inputId){
+  const name=document.getElementById(inputId).value.trim();
+  if(!name) return;
+  if(DB[sheet].find(r=>r.name===name)){ alert('已存在'); return; }
+  try{ await api('append',sheet,{data:{id:uid(),name}}); showTab('settings'); }
+  catch(e){ alert('新增失敗：'+e.message); }
+}
+async function removeItem(sheet,id){
+  if(!confirm('確定要移除？')) return;
+  const rec=DB[sheet].find(r=>String(r.id)===String(id)||r.name===id);
+  if(!rec) return;
+  try{ await api('delete',sheet,{id:rec.id||id}); showTab('settings'); }
+  catch(e){ alert('移除失敗：'+e.message); }
+}
+function toggleCard(id){
+  const el=document.getElementById(id);
+  const arrow=document.getElementById(id+'_arrow');
+  if(!el) return;
+  if(el.style.display==='none'){ el.style.display='block'; if(arrow) arrow.textContent='▲'; }
+  else { el.style.display='none'; if(arrow) arrow.textContent='▼'; }
+}
+
+function changePW(role){
+  const val=document.getElementById(role==='admin'?'newAdminPW':'newTeacherPW').value.trim();
+  if(!val||val.length<4){ alert('密碼至少4個字元'); return; }
+  setPW(role,val); document.getElementById(role==='admin'?'newAdminPW':'newTeacherPW').value=''; alert('密碼已更新！');
+}
+
+async function addStudent(){
+  const name=document.getElementById('newStudentName').value.trim();
+  const price=document.getElementById('newStudentPrice').value;
+  if(!name){ alert('請輸入學生姓名'); return; }
+  if(DB.students.find(s=>s.name===name)){ alert('學生已存在'); return; }
+  try{ await api('append','students',{data:{id:uid(),name,price}}); showTab('settings'); }
+  catch(e){ alert('新增失敗：'+e.message); }
+}
+
+async function removeStudent(id){
+  if(!confirm('確定要移除這位學生？')) return;
+  try{ await api('delete','students',{id}); showTab('settings'); }
+  catch(e){ alert('移除失敗：'+e.message); }
+}
+
+// 初始化
+(async()=>{
+  try{
+    DB.teachers=(await api('getAll','teachers'))||[];
+    document.getElementById('loginTeacher').innerHTML='<option value="">— 請選擇 —</option>'+
+      DB.teachers.map(t=>`<option value="${t.name}">${t.name}</option>`).join('');
+  } catch(e){}
+})();
+</script>
+</body>
+</html>
