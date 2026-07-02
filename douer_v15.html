@@ -516,26 +516,33 @@ function renderPrivateAdmin(){
 function calcGroupFee(teacher, headcount) {
   const n = parseInt(headcount) || 0;
   if (teacher === '廷廷') return n * 220;
-  if (teacher === 'yukie') return n * 250;
+  if (teacher === 'Yukie' || teacher === 'yukie') return n * 250;
   if (teacher === '俐俐') {
     if (n <= 0) return 0;
     if (n <= 4) return 700;
     return 700 + (n - 4) * 80;
   }
   if (teacher === '馬希') return n > 0 ? 600 : 0;
-  if (teacher === '乖乖') return n * 220;
-  return n * 220; // 預設
+  if (teacher === '乖乖') {
+    if (n <= 0) return 0;
+    if (n <= 3) return 700;
+    return 700 + (n - 3) * 100;
+  }
+  return n * 220;
 }
 function feeDesc(teacher, headcount) {
   const n = parseInt(headcount) || 0;
   if (teacher === '廷廷') return `${n} 人 × $220`;
-  if (teacher === 'yukie') return `${n} 人 × $250`;
+  if (teacher === 'Yukie' || teacher === 'yukie') return `${n} 人 × $250`;
   if (teacher === '俐俐') {
     if (n <= 4) return `${n} 人（4人以下 $700）`;
     return `${n} 人（$700 + ${n-4} × $80）`;
   }
   if (teacher === '馬希') return `每堂 $600`;
-  if (teacher === '乖乖') return `${n} 人 × $220`;
+  if (teacher === '乖乖') {
+    if (n <= 3) return `${n} 人 = $700`;
+    return `${n} 人（$700 + ${n-3} × $100 = $${700+(n-3)*100}）`;
+  }
   return `${n} 人`;
 }
 
